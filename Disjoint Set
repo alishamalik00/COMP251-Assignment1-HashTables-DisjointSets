@@ -1,0 +1,172 @@
+/****************************
+*
+* COMP251 template file
+*
+* Assignment 1, Question 2b
+*
+*****************************/
+
+/* contructor: creates a partition of n elements. */
+/*each element is in a separate disjoint set */
+
+import java.util.*;
+
+/* Constructor: creates a partition of n elements. */
+/* Each element is in a separate disjoint set */
+
+public class DisjointSetsB {
+
+    private int[] par;
+    private int[] rank;
+    private HashMap<Integer, Integer> setSum; // stores sum of elements in each set
+    
+    DisjointSetsB(int n) {
+        if (n > 0) {
+            par = new int[n];
+            rank = new int[n];
+            setSum = new HashMap<>();
+
+            for (int i = 0; i < n; i++) {
+                par[i] = i;   
+                rank[i] = 0;  
+                setSum.put(i, i); 
+            }
+        }
+    }
+
+    public String toString() {
+        int pari, countsets = 0;
+        String output = "";
+        String[] setstrings = new String[this.par.length];
+        /* build string for each set */
+        for (int i = 0; i < this.par.length; i++) {
+            pari = find(i);
+            if (setstrings[pari] == null) {
+                setstrings[pari] = String.valueOf(i);
+                countsets += 1;
+            } else {
+                setstrings[pari] += "," + i;
+            }
+        }
+        /* print strings */
+        output = countsets + " set(s):\n";
+        for (int i = 0; i < this.par.length; i++) {
+            if (setstrings[i] != null) {
+                output += i + " : " + setstrings[i] + "\n";
+            }
+        }
+        return output;
+    }
+
+    /*find representative of element i */
+    public int find(int i) {
+        if (par[i] != i) {
+            par[i] = find(par[i]); // path compression
+        }
+        return par[i];
+    }
+
+    /*merging sets containing elements i and j */
+    public int union(int i, int j) {
+    int rootI = find(i);
+    int rootJ = find(j);
+
+    //if already in the same set, return only one of the roots
+    if (rootI == rootJ) {
+        return rootI;
+    }
+    //determining new parent 
+    int newRoot, oldRoot;
+    if (rank[rootI] > rank[rootJ]) {
+        newRoot = rootI;
+        oldRoot = rootJ;
+    } else if (rank[rootI] < rank[rootJ]) {
+        newRoot = rootJ;
+        oldRoot = rootI;
+    } else {
+        newRoot = rootI;
+        oldRoot = rootJ;
+        rank[newRoot]++; // increase rank when merging trees with same height
+    }
+    //performing union
+    par[oldRoot] = newRoot;
+    setSum.put(newRoot, setSum.get(newRoot) + setSum.get(oldRoot)); //sum update
+    setSum.remove(oldRoot);
+    return newRoot;
+}
+        private void pathCompressor(){
+        for(int i =0; i < this.par.length; i++){
+            find(i);
+        }
+    }
+
+    /* move i to the set containing j */
+    public void move(int i, int j) {
+        //apply path compression before hand
+        pathCompressor();
+        int rootI = find(i);
+        int rootJ = find(j);
+        if (rootI == rootJ) return; // Already in the same set
+
+        //remove i from old set's sum
+        setSum.put(rootI, setSum.get(rootI) - i);
+
+        //if i was the root of its own set, handle reassignment properly
+        if (rootI == i) {
+            ArrayList<Integer> elementsInOldSet = new ArrayList<>();
+            //finding other elements in the set other than i
+            for (int k = 0; k < par.length; k++) {
+                if (k != i && find(k) == rootI) {
+                    elementsInOldSet.add(k);
+                }
+            }
+            if (!elementsInOldSet.isEmpty()) {
+                int newRoot = elementsInOldSet.get(0);
+                //updating parent pointers for the rest of the elements
+                for (int k : elementsInOldSet) {
+                    par[k] = newRoot;
+                }
+                par[newRoot] = newRoot;
+                //rank[newRoot] = rank[rootI]; // preserve rank
+                setSum.put(newRoot, setSum.get(rootI)); // transfer sum
+                //setSum.remove(rootI);
+            } 
+        }
+            //move i to the new set
+            par[i] = rootJ;
+            setSum.put(rootJ, setSum.get(rootJ) + i);
+    }
+    
+
+    /* return the sum of elements in the set of i */
+    public int sum_elements(int i) {
+        /* Fill this method */
+        int root = find(i);
+        int sum = setSum.getOrDefault(root, 0);
+        return sum;
+    }
+
+    public static void main(String[] args) {
+        DisjointSetsB myset = new DisjointSetsB(6);
+        System.out.println(myset);
+        System.out.println("-> Union 2 and 3");
+        myset.union(2,3);
+        System.out.println(myset);
+        System.out.println("-> Union 2 and 3");
+        myset.union(2,3);
+        System.out.println(myset);
+        System.out.println("-> Union 2 and 1");
+        myset.union(2,1);
+        System.out.println(myset);
+        System.out.println("-> Union 4 and 5");
+        myset.union(4,5);
+        System.out.println(myset);
+        System.out.println("-> Union 3 and 1");
+        myset.union(3,1);
+        System.out.println(myset);
+        System.out.println("-> Union 2 and 4");
+        myset.union(2,4);
+        System.out.println(myset);
+
+    }
+}
