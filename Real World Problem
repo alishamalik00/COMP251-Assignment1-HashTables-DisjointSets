@@ -1,0 +1,95 @@
+import java.util.*;
+
+public class A1_Q3 {
+
+    public static ArrayList<String> Discussion_Board(String[] posts) {
+        //retun empty list is no posts 
+        if (posts == null || posts.length == 0) return new ArrayList<>();//stres unique users
+        HashSet<String> users = new HashSet<>();//words used by each user
+        HashMap<String, HashSet<String>> wordMap = new HashMap<>();
+        HashMap<String, Integer> freq = new HashMap<>();
+
+        for (String post : posts) {
+            int spaceIdx = post.indexOf(' ');
+            if (spaceIdx == -1) continue; //skip if post only conains username
+
+            //extra username + message
+            String user = post.substring(0, spaceIdx);
+            String msg = post.substring(spaceIdx + 1);
+            users.add(user);
+            wordMap.putIfAbsent(user, new HashSet<>());
+            for (String w : msg.split(" ")) {
+                wordMap.get(user).add(w); //store unique words per user 
+            }
+        }
+        int totalUsers = users.size();
+        HashMap<String, Integer> wordCounts = new HashMap<>(); //holds number of users who used each word 
+
+        //count occurences of words accross different users 
+        for (String user : wordMap.keySet()) {
+            for (String w : wordMap.get(user)) {
+                wordCounts.put(w, wordCounts.getOrDefault(w, 0) + 1);
+            }
+        }
+        HashSet<String> commonWords = new HashSet<>();
+        for (Map.Entry<String, Integer> entry : wordCounts.entrySet()) {
+            if (entry.getValue() == totalUsers) commonWords.add(entry.getKey());
+        }
+        //count number of common words in all posts 
+        for (String post : posts) {
+            int spaceIdx = post.indexOf(' ');
+            if (spaceIdx == -1) continue;
+            String msg = post.substring(spaceIdx + 1);
+            for (String w : msg.split(" ")) {
+                if (commonWords.contains(w)) {
+                    freq.put(w, freq.getOrDefault(w, 0) + 1);
+                }}}
+            
+        //convert lisr and sort based on frequency 
+        ArrayList<String> result = new ArrayList<>(commonWords);
+        result.sort((a, b) -> {
+            int comp = Integer.compare(freq.get(b), freq.get(a));
+            return (comp == 0) ? a.compareTo(b) : comp;
+        });
+
+        return result;
+    }
+    public static void main(String[] args) {
+        // Expected: [no, nobody, never]
+        String[] posts1 = {
+            "David no no no no nobody never",
+            "Alexia why ever not",
+            "Parham no not never nobody",
+            "Brian no never know nobody",
+            "Jeremy why no nobody",
+            "Jeremy nobody never know why nobody",
+            "David never no nobody"
+        };
+        System.out.println(Discussion_Board(posts1)); // [no, nobody, never]
+        String[] posts2 = {
+            "Villain avast",
+            "Scoundrel ahoy"
+        };
+        System.out.println(Discussion_Board(posts2)); // []
+        String[] posts3 = {
+            "user1 chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp",
+            "user2 chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp",
+            "user3 chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp",
+            "user1 chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp chomp"
+        };
+        System.out.println(Discussion_Board(posts3)); 
+
+        String[] posts4 = {
+            "user1 doubledutch double double dutch",
+            "user2 dutch doubledutch doubledutch double",
+            "user3 not double dutch doubledutch"
+        };
+        System.out.println(Discussion_Board(posts4)); // [double, doubledutch, dutch]
+        String[] posts5 = {
+            "James gobble de gook",	
+            "Bill gobble",
+            "james de gook"
+        };
+        System.out.println(Discussion_Board(posts5)); // []
+    }
+}
